@@ -25,9 +25,9 @@ export type SessionUser = {
 export type Session = { token: string; user?: SessionUser };
 
 const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
-const API_URL = (configuredApiUrl || (import.meta.env.PROD
+const API_URL = (import.meta.env.PROD
   ? "https://live-polling-tool-s7ef.onrender.com"
-  : "http://localhost:8080")).replace(/\/$/, "");
+  : configuredApiUrl || "http://localhost:8080").replace(/\/$/, "");
 const SESSION_KEY = "pulsepoll.session";
 
 function objectValue(value: unknown): Record<string, unknown> {
