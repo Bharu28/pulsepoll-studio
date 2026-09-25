@@ -24,7 +24,10 @@ export type SessionUser = {
 
 export type Session = { token: string; user?: SessionUser };
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "http://localhost:8080";
+const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+const API_URL = (configuredApiUrl || (import.meta.env.PROD
+  ? "https://live-polling-tool-s7ef.onrender.com"
+  : "http://localhost:8080")).replace(/\/$/, "");
 const SESSION_KEY = "pulsepoll.session";
 
 function objectValue(value: unknown): Record<string, unknown> {
@@ -97,7 +100,11 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
   try { data = body ? JSON.parse(body) : null; } catch { data = body; }
   if (!response.ok) {
     const errorBody = objectValue(data);
-    throw new Error(stringValue(errorBody.message, errorBody.error, body) || `Request failed with status ${response.status}`);
+    const message = stringValue(errorBody.message, errorBody.error);
+    const fallbackMessage = typeof data === "string" && data.trim().startsWith("<")
+      ? "The API endpoint is unavailable. Please try again shortly."
+      : body;
+    throw new Error(message || fallbackMessage || `Request failed with status ${response.status}`);
   }
   return data;
 }
