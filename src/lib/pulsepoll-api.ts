@@ -90,7 +90,7 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
   const session = readSession();
   const headers = new Headers(init?.headers);
   headers.set("Content-Type", "application/json");
-  if (session?.token) headers.set("Authorization", `Bearer ${session.token}`);
+  if (session?.token) headers.set("Authorization", "Bearer " + session.token);
   const response = await fetch(`${API_URL}${path}`, { ...init, headers });
   const body = await response.text();
   let data: unknown = null;
@@ -120,8 +120,9 @@ export async function signup(input: { name: string; email: string; password: str
 }
 
 export async function listPolls(): Promise<Poll[]> {
-  const response = objectValue(await request("/polls"));
-  const values = Array.isArray(response) ? response : (response.polls ?? response.items ?? response.data ?? response.results);
+  const rawResponse = await request("/polls");
+  const response = objectValue(rawResponse);
+  const values = Array.isArray(rawResponse) ? rawResponse : (response.polls ?? response.items ?? response.data ?? response.results);
   return Array.isArray(values) ? values.map(normalizePoll).filter((poll): poll is Poll => poll !== null) : [];
 }
 
